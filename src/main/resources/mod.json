@@ -1,0 +1,12 @@
+{
+  // Java verticle
+  "main":"com.fm.eiotcserver.authentication.AuthenticationVerticle",
+
+  // If your module is going to be registered in the Vert.x module registry you will also need the following
+  // mandatory fields
+  "description":"Put description of your module here",
+  "licenses": ["The Apache Software License Version 2.0"],
+  "author": "Fabio Marini",
+
+  "auto-redeploy": false
+}
