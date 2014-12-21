@@ -57,7 +57,7 @@ public class AuthenticationVerticle extends Verticle {
                         req.response().end(jsonObjectMessage.body().encodePrettily()));
                }
                else {
-                  req.response().end("Error!");
+                  req.response().end(AuthenticationResponse.negativeRepose());
                }
           });
       });
@@ -92,11 +92,19 @@ public class AuthenticationVerticle extends Verticle {
                data.putArray("results", new JsonArray());
 
                vertx.eventBus().send("mongodb-persistor", json,
-                     (Message<JsonObject> jsonObjectMessage) ->
-                           req.response().end(jsonObjectMessage.body().encodePrettily()));
+                     (Message<JsonObject> jsonObjectMessage) -> {
+                        JsonObject mresp = jsonObjectMessage.body();
+
+                        if(mresp.getInteger("count") == 1) {
+                           req.response().end(AuthenticationResponse.positiveRepose());
+                        }
+                        else {
+                           req.response().end(AuthenticationResponse.negativeRepose());
+                        }
+                   });
             }
             else {
-               req.response().end("Error!");
+               req.response().end(AuthenticationResponse.negativeRepose());
             }
          });
       });
@@ -131,11 +139,19 @@ public class AuthenticationVerticle extends Verticle {
                data.putArray("results", new JsonArray());
 
                vertx.eventBus().send("mongodb-persistor", json,
-                     (Message<JsonObject> jsonObjectMessage) ->
-                           req.response().end(jsonObjectMessage.body().encodePrettily()));
+                     (Message<JsonObject> jsonObjectMessage) -> {
+                        JsonObject mresp = jsonObjectMessage.body();
+
+                        if(mresp.getInteger("count") == 1) {
+                           req.response().end(AuthenticationResponse.positiveRepose());
+                        }
+                        else {
+                           req.response().end(AuthenticationResponse.negativeRepose());
+                        }
+                     });
             }
             else {
-               req.response().end("Error!");
+               req.response().end(AuthenticationResponse.negativeRepose());
             }
          });
       });
