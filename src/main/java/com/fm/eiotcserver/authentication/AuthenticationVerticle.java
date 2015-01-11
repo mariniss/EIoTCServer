@@ -30,7 +30,8 @@ public class AuthenticationVerticle extends Verticle {
                Map<String, Object> params = null;
                if ("application/x-www-form-urlencoded".equals(contentType)) {
                   params = RequestUtils.getParamsFromBody(event);
-               } else if ("application/json".equals(contentType)) {
+               } else if ("application/json".equals(contentType) ||
+                          "application/vnd.org.jfrog.artifactory.security.group+json".equals(contentType)) {
                   params = new JsonObject(new String(event.toString())).toMap();
                }
 
@@ -95,7 +96,7 @@ public class AuthenticationVerticle extends Verticle {
                      (Message<JsonObject> jsonObjectMessage) -> {
                         JsonObject mresp = jsonObjectMessage.body();
 
-                        if(mresp.getInteger("count") == 1) {
+                        if(mresp.getInteger("count") >= 1) {
                            req.response().end(AuthenticationResponse.positiveRepose());
                         }
                         else {
