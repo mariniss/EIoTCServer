@@ -55,9 +55,15 @@ public class AuthenticationVerticle extends Verticle {
                   JsonObject data = new JsonObject();
                   data.putArray("results", new JsonArray());
 
+                  container.logger().info("Sending request to mongo..." + json);
+
                   vertx.eventBus().send("mongodb-persistor", json,
-                     (Message<JsonObject> jsonObjectMessage) ->
-                        req.response().end(jsonObjectMessage.body().encodePrettily()));
+                     (Message<JsonObject> jsonObjectMessage) -> {
+                        container.logger().info("Response from mongo..." + jsonObjectMessage.body());
+
+                        req.response().end(jsonObjectMessage.body().encodePrettily());
+                     });
+
                }
                else {
                   req.response().end(AuthenticationResponse.negativeRepose());
@@ -69,6 +75,8 @@ public class AuthenticationVerticle extends Verticle {
          final String contentType = req.headers().get("Content-Type");
 
          req.bodyHandler(event -> {
+            container.logger().info("Handling request to " + "/security/check/connection");
+
             Map<String, Object> params = null;
             if ("application/x-www-form-urlencoded".equals(contentType)) {
                params = RequestUtils.getParamsFromBody(event);
@@ -94,9 +102,13 @@ public class AuthenticationVerticle extends Verticle {
                JsonObject data = new JsonObject();
                data.putArray("results", new JsonArray());
 
+               container.logger().info("Sending request to mongo..." + json);
+
                vertx.eventBus().send("mongodb-persistor", json,
                      (Message<JsonObject> jsonObjectMessage) -> {
                         JsonObject mresp = jsonObjectMessage.body();
+
+                        container.logger().info("Response from mongo..." + mresp);
 
                         if(mresp.getInteger("count") >= 1) {
                            req.response().end(AuthenticationResponse.positiveRepose());
@@ -116,6 +128,8 @@ public class AuthenticationVerticle extends Verticle {
          final String contentType = req.headers().get("Content-Type");
 
          req.bodyHandler(event -> {
+            container.logger().info("Handling request to " + "/security/check/session");
+
             Map<String, Object> params = null;
             if ("application/x-www-form-urlencoded".equals(contentType)) {
                params = RequestUtils.getParamsFromBody(event);
@@ -141,9 +155,13 @@ public class AuthenticationVerticle extends Verticle {
                JsonObject data = new JsonObject();
                data.putArray("results", new JsonArray());
 
+               container.logger().info("Sending request to mongo..." + json);
+
                vertx.eventBus().send("mongodb-persistor", json,
                      (Message<JsonObject> jsonObjectMessage) -> {
                         JsonObject mresp = jsonObjectMessage.body();
+
+                        container.logger().info("Response from mongo..." + mresp);
 
                         if(mresp.getInteger("count") == 1) {
                            req.response().end(AuthenticationResponse.positiveRepose());
