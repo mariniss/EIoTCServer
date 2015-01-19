@@ -27,7 +27,7 @@ public class AuthenticationVerticle extends Verticle {
          final String contentType = req.headers().get("Content-Type");
 
          req.bodyHandler(event -> {
-               container.logger().info("Handling request to " + "/security/user");
+               container.logger().debug("Handling request to " + "/security/user");
 
                Map<String, Object> params = null;
                if ("application/x-www-form-urlencoded".equals(contentType)) {
@@ -55,11 +55,11 @@ public class AuthenticationVerticle extends Verticle {
                   JsonObject data = new JsonObject();
                   data.putArray("results", new JsonArray());
 
-                  container.logger().info("Sending request to mongo..." + json);
+                  container.logger().debug("Sending request to mongo..." + json);
 
                   vertx.eventBus().send("mongodb-persistor", json,
                      (Message<JsonObject> jsonObjectMessage) -> {
-                        container.logger().info("Response from mongo..." + jsonObjectMessage.body());
+                        container.logger().debug("Response from mongo..." + jsonObjectMessage.body());
 
                         req.response().end(jsonObjectMessage.body().encodePrettily());
                      });
@@ -75,7 +75,7 @@ public class AuthenticationVerticle extends Verticle {
          final String contentType = req.headers().get("Content-Type");
 
          req.bodyHandler(event -> {
-            container.logger().info("Handling request to " + "/security/check/connection");
+            container.logger().debug("Handling request to " + "/security/check/connection");
 
             Map<String, Object> params = null;
             if ("application/x-www-form-urlencoded".equals(contentType)) {
@@ -102,13 +102,13 @@ public class AuthenticationVerticle extends Verticle {
                JsonObject data = new JsonObject();
                data.putArray("results", new JsonArray());
 
-               container.logger().info("Sending request to mongo..." + json);
+               container.logger().debug("Sending request to mongo..." + json);
 
                vertx.eventBus().send("mongodb-persistor", json,
                      (Message<JsonObject> jsonObjectMessage) -> {
                         JsonObject mresp = jsonObjectMessage.body();
 
-                        container.logger().info("Response from mongo..." + mresp);
+                        container.logger().debug("Response from mongo..." + mresp);
 
                         if(mresp.getInteger("count") >= 1) {
                            req.response().end(AuthenticationResponse.positiveRepose());
@@ -128,7 +128,7 @@ public class AuthenticationVerticle extends Verticle {
          final String contentType = req.headers().get("Content-Type");
 
          req.bodyHandler(event -> {
-            container.logger().info("Handling request to " + "/security/check/session");
+            container.logger().debug("Handling request to " + "/security/check/session");
 
             Map<String, Object> params = null;
             if ("application/x-www-form-urlencoded".equals(contentType)) {
@@ -155,13 +155,13 @@ public class AuthenticationVerticle extends Verticle {
                JsonObject data = new JsonObject();
                data.putArray("results", new JsonArray());
 
-               container.logger().info("Sending request to mongo..." + json);
+               container.logger().debug("Sending request to mongo..." + json);
 
                vertx.eventBus().send("mongodb-persistor", json,
                      (Message<JsonObject> jsonObjectMessage) -> {
                         JsonObject mresp = jsonObjectMessage.body();
 
-                        container.logger().info("Response from mongo..." + mresp);
+                        container.logger().debug("Response from mongo..." + mresp);
 
                         if(mresp.getInteger("count") == 1) {
                            req.response().end(AuthenticationResponse.positiveRepose());
@@ -187,14 +187,12 @@ public class AuthenticationVerticle extends Verticle {
    }
 
    private void configureDepenciesModules() {
-      container.logger().info("Deploing modules..." );
-
       JsonObject appConfig = container.config();
+      container.logger().info("Deploing modules...loaded config" + appConfig);
 
       JsonObject mongoConfig = appConfig.getObject("mongo-persistor");
-      container.logger().info("Configuring mongo module with configuration: " + mongoConfig );
       container.deployModule("io.vertx~mod-mongo-persistor~2.1.1", mongoConfig);
 
-      container.logger().info("...Modules deployed" );
+      container.logger().info("...modules deployed" );
    }
 }
