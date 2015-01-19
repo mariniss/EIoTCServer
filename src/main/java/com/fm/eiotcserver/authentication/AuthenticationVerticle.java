@@ -27,6 +27,8 @@ public class AuthenticationVerticle extends Verticle {
          final String contentType = req.headers().get("Content-Type");
 
          req.bodyHandler(event -> {
+               container.logger().info("Handling request to " + "/security/user");
+
                Map<String, Object> params = null;
                if ("application/x-www-form-urlencoded".equals(contentType)) {
                   params = RequestUtils.getParamsFromBody(event);
@@ -158,7 +160,7 @@ public class AuthenticationVerticle extends Verticle {
       });
 
       matcher.noMatch(req ->
-         req.response().sendFile("./site/index.html")
+         req.response().sendFile("site/index.html")
       );
 
       vertx.createHttpServer().requestHandler(matcher).listen(8888);
@@ -167,8 +169,14 @@ public class AuthenticationVerticle extends Verticle {
    }
 
    private void configureDepenciesModules() {
+      container.logger().info("Deploing modules..." );
+
       JsonObject appConfig = container.config();
 
-      container.deployModule("io.vertx~mod-mongo-persistor~2.1.1", appConfig.getObject("mongo-persistor"));
+      JsonObject mongoConfig = appConfig.getObject("mongo-persistor");
+      container.logger().info("Configuring mongo module with configuration: " + mongoConfig );
+      container.deployModule("io.vertx~mod-mongo-persistor~2.1.1", mongoConfig);
+
+      container.logger().info("...Modules deployed" );
    }
 }
