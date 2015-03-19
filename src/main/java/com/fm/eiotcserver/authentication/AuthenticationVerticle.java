@@ -23,54 +23,6 @@ public class AuthenticationVerticle extends Verticle {
 
       RouteMatcher matcher = new RouteMatcher();
 
-      matcher.post("/security/user", req -> {
-         final String contentType = req.headers().get("Content-Type");
-
-         req.bodyHandler(event -> {
-               container.logger().debug("Handling request to " + "/security/user");
-
-               Map<String, Object> params = null;
-               if ("application/x-www-form-urlencoded".equals(contentType)) {
-                  params = RequestUtils.getParamsFromBody(event);
-               } else if ("application/json".equals(contentType) ||
-                          "application/vnd.org.jfrog.artifactory.security.group+json".equals(contentType)) {
-                  params = new JsonObject(new String(event.toString())).toMap();
-               }
-
-               if (params != null) {
-                  JsonObject document = new JsonObject();
-
-                  Set entries = params.entrySet();
-                  Iterator iterator = entries.iterator();
-                  while(iterator.hasNext()) {
-                     Map.Entry entry = (Map.Entry) iterator.next();
-
-                     document.putString((String)entry.getKey(), (String)entry.getValue());
-                  }
-
-                  JsonObject json = new JsonObject().putString("collection", "eiotcs-auth")
-                        .putString("action", "save")
-                        .putObject("document", document);
-
-                  JsonObject data = new JsonObject();
-                  data.putArray("results", new JsonArray());
-
-                  container.logger().debug("Sending request to mongo..." + json);
-
-                  vertx.eventBus().send("mongodb-persistor", json,
-                     (Message<JsonObject> jsonObjectMessage) -> {
-                        container.logger().debug("Response from mongo..." + jsonObjectMessage.body());
-
-                        req.response().end(jsonObjectMessage.body().encodePrettily());
-                     });
-
-               }
-               else {
-                  req.response().end(AuthenticationResponse.negativeRepose());
-               }
-          });
-      });
-
       matcher.post("/security/check/connection", req -> {
          final String contentType = req.headers().get("Content-Type");
 
