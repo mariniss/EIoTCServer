@@ -129,6 +129,166 @@ public class AuthenticationVerticle extends Verticle {
          });
       });
 
+      matcher.post("/security/user", req -> {
+         final String contentType = req.headers().get("Content-Type");
+
+         req.bodyHandler(event -> {
+            container.logger().debug("Handling request to POST " + "/security/user");
+
+            Map<String, Object> params = null;
+            if ("application/x-www-form-urlencoded".equals(contentType)) {
+               params = RequestUtils.getParamsFromBody(event);
+            } else if ("application/json".equals(contentType) ||
+                    "application/vnd.org.jfrog.artifactory.security.group+json".equals(contentType)) {
+               params = new JsonObject(new String(event.toString())).toMap();
+            }
+
+            if (params != null) {
+               JsonObject document = new JsonObject();
+
+               Set entries = params.entrySet();
+               Iterator iterator = entries.iterator();
+               while(iterator.hasNext()) {
+                  Map.Entry entry = (Map.Entry) iterator.next();
+
+                  document.putString((String)entry.getKey(), (String)entry.getValue());
+               }
+
+               JsonObject json = new JsonObject().putString("collection", "eiotcs-auth")
+                       .putString("action", "save")
+                       .putObject("document", document);
+
+               JsonObject data = new JsonObject();
+               data.putArray("results", new JsonArray());
+
+               container.logger().debug("Sending request to mongo..." + json);
+
+               vertx.eventBus().send("mongodb-persistor", json,
+                       (Message<JsonObject> jsonObjectMessage) -> {
+                          container.logger().debug("Response from mongo..." + jsonObjectMessage.body());
+
+                          req.response().end(jsonObjectMessage.body().encodePrettily());
+                       });
+
+            }
+            else {
+               req.response().end(AuthenticationResponse.negativeRepose());
+            }
+         });
+      });
+
+
+      matcher.post("/security/user/:id", req -> {
+         final String contentType = req.headers().get("Content-Type");
+
+         req.bodyHandler(event -> {
+            String id = req.params().get("id");
+
+            container.logger().debug("Handling request to POST " + "/security/user/" + id);
+
+            Map<String, Object> params = null;
+            if ("application/x-www-form-urlencoded".equals(contentType)) {
+               params = RequestUtils.getParamsFromBody(event);
+            } else if ("application/json".equals(contentType) ||
+                    "application/vnd.org.jfrog.artifactory.security.group+json".equals(contentType)) {
+               params = new JsonObject(new String(event.toString())).toMap();
+            }
+
+            if (params != null) {
+               JsonObject document = new JsonObject();
+
+               JsonObject criteria = new JsonObject();
+               criteria.putString("_id", id);
+
+               Set entries = params.entrySet();
+               Iterator iterator = entries.iterator();
+               while(iterator.hasNext()) {
+                  Map.Entry entry = (Map.Entry) iterator.next();
+
+                  document.putString((String)entry.getKey(), (String)entry.getValue());
+               }
+
+               JsonObject json = new JsonObject().putString("collection", "eiotcs-auth")
+                       .putString("action", "update")
+                       .putObject("criteria", criteria)
+                       .putObject("objNew", document);
+
+               JsonObject data = new JsonObject();
+               data.putArray("results", new JsonArray());
+
+               container.logger().debug("Sending request to mongo..." + json);
+
+               vertx.eventBus().send("mongodb-persistor", json,
+                       (Message<JsonObject> jsonObjectMessage) -> {
+                          container.logger().debug("Response from mongo..." + jsonObjectMessage.body());
+
+                          req.response().end(jsonObjectMessage.body().encodePrettily());
+                       });
+
+            }
+            else {
+               req.response().end(AuthenticationResponse.negativeRepose());
+            }
+         });
+      });
+
+
+      matcher.get("/security/user/:id", req -> {
+         req.bodyHandler(event -> {
+            String id = req.params().get("id");
+
+            container.logger().debug("Handling request to GET " + "/security/user/" + id);
+
+            JsonObject criteria = new JsonObject();
+            criteria.putString("_id", id);
+
+            JsonObject json = new JsonObject().putString("collection", "eiotcs-auth")
+                    .putString("action", "find")
+                    .putObject("matcher", criteria);
+
+            JsonObject data = new JsonObject();
+            data.putArray("results", new JsonArray());
+
+            container.logger().debug("Sending request to mongo..." + json);
+
+            vertx.eventBus().send("mongodb-persistor", json,
+                    (Message<JsonObject> jsonObjectMessage) -> {
+                       container.logger().debug("Response from mongo..." + jsonObjectMessage.body());
+
+                       req.response().end(jsonObjectMessage.body().encodePrettily());
+                    });
+
+         });
+      });
+
+
+      matcher.delete("/security/user/:id", req -> {
+         req.bodyHandler(event -> {
+            String id = req.params().get("id");
+
+            container.logger().debug("Handling request to DELETE " + "/security/user/" + id);
+
+            JsonObject criteria = new JsonObject();
+            criteria.putString("_id", id);
+
+            JsonObject json = new JsonObject().putString("collection", "eiotcs-auth")
+                    .putString("action", "delete")
+                    .putObject("matcher", criteria);
+
+            JsonObject data = new JsonObject();
+            data.putArray("results", new JsonArray());
+
+            container.logger().debug("Sending request to mongo..." + json);
+
+            vertx.eventBus().send("mongodb-persistor", json,
+                    (Message<JsonObject> jsonObjectMessage) -> {
+                       container.logger().debug("Response from mongo..." + jsonObjectMessage.body());
+
+                       req.response().end(jsonObjectMessage.body().encodePrettily());
+                    });
+         });
+      });
+
       matcher.noMatch(req ->
          req.response().sendFile("site/index.html")
       );
