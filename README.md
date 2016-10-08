@@ -1,9 +1,7 @@
-# Vert.x Example Maven Project
+EIoTServer
+======
 
-Example project for creating a Vert.x module with a Gradle build.
+Authentication service for the clients that connect each Raspberry Pi ([PiMQ](https://github.com/mariniss/PiMQ)) to the EasyIoTConnect platform, main project [here](https://github.com/mariniss/EasyIoTConnect).
+It implements the authentication logic necessary to make the access unique for the ActiveMQ queues. 
 
-By default this module contains a simple Java verticle which listens on the event bus and responds to `ping!`
-messages with `pong!`.
-
-This example also shows you how to write tests in Java, Groovy, Ruby and Python
-
+It is a java Vert.x application that provides a really simple REST interface and persists the data in a Mongo DB.
